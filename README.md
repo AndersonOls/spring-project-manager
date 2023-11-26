@@ -1,4 +1,5 @@
 ```mermaid
+
 classDiagram
   class Usuario {
     -id: int
@@ -50,8 +51,9 @@ classDiagram
   Usuario <|-- MembroEquipe
   Usuario <|-- GerenteProjetos
   Usuario <|-- Administrador
-  MembroEquipe -- Projeto
-  GerenteProjetos -- Projeto
-  Administrador -- Usuario
-  Administrador -- Projeto
-  Projeto -- Tarefa
+  MembroEquipe "*" -- "1..*" Projeto
+  GerenteProjetos "1" -- "1..*" Projeto
+  Administrador "1" -- "*" Usuario
+  Administrador "1" -- "*" Projeto
+  Projeto "1" -- "*" Tarefa
+  Tarefa "1" -- "1" MembroEquipe
