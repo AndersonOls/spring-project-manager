@@ -7,5 +7,5 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-public record ProjectRecordDto(@NotBlank  String name, @NotNull String description) {
+public record ProjectRecordDto(@NotBlank  String name, @NotBlank String description) {
 }
