@@ -1,5 +1,6 @@
 package com.anderson.pmanager.model;
 
+import com.anderson.pmanager.enums.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -14,8 +15,15 @@ public class TaskModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String description;
-    private String status;
-    private String responsavel;
+    private TaskStatus status;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonBackReference
+    private UserModel responsavel;
+
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
     @JsonBackReference

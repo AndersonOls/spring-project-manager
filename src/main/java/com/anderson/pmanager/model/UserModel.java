@@ -1,8 +1,9 @@
 package com.anderson.pmanager.model;
 
 import com.anderson.pmanager.enums.UserRole;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,8 +12,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+
 @Entity
+@Table(name = "tb_users")
+@Data
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class UserModel implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -24,6 +31,18 @@ public class UserModel implements UserDetails {
     private String password;
 
     private UserRole role;
+
+    @OneToMany(mappedBy = "responsavel", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<TaskModel> tasks;
+
+    public UserModel(String name, String login, String password, UserRole role){
+        this.name = name;
+        this.login = login;
+        this.password = password;
+        this.role = role;
+    }
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

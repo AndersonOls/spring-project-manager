@@ -4,8 +4,10 @@ import com.anderson.pmanager.dtos.ProjectRecordDto;
 import com.anderson.pmanager.dtos.TaskRecordDto;
 import com.anderson.pmanager.model.ProjectModel;
 import com.anderson.pmanager.model.TaskModel;
+import com.anderson.pmanager.model.UserModel;
 import com.anderson.pmanager.repositories.ProjectRepository;
 import com.anderson.pmanager.repositories.TaskRepository;
+import com.anderson.pmanager.repositories.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,50 +27,34 @@ public class TaskController {
     TaskRepository taskRepository;
     @Autowired
     ProjectRepository projectRepository;
+    @Autowired
+    UserRepository userRepository;
 
     @PostMapping
-    public ResponseEntity<TaskModel> createTask(@RequestBody @Valid TaskRecordDto taskRecordDto){
-        var taskModel = new TaskModel();
+    public ResponseEntity<?> createTask(@RequestBody @Valid TaskRecordDto taskRecordDto) {
+        Optional<ProjectModel> optionalProject = projectRepository.findById(taskRecordDto.projectId());
+        if (optionalProject.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project not found.");
+        }
+
+        Optional<UserModel> optionalUser = userRepository.findById(taskRecordDto.responsavelId());
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
+
+        TaskModel taskModel = new TaskModel();
         BeanUtils.copyProperties(taskRecordDto, taskModel);
 
-        UUID projectId = taskRecordDto.getProjectId();
-        Optional<ProjectModel> optionalProject = projectRepository.findById(projectId);
+        taskModel.setProject(optionalProject.get());
+        taskModel.setResponsavel(optionalUser.get());
 
-        if (optionalProject.isPresent()) {
-            ProjectModel project = optionalProject.get();
-
-            taskModel.setProject(project);
-
-            if (project.getTasks() == null) {
-                project.setTasks(new ArrayList<>());
-            }
-            project.getTasks().add(taskModel);
-
-            projectRepository.save(project);
-
-            System.out.println("Task created successfully.");
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(taskRepository.save(taskModel));
-        } else {
-            System.out.println("Project not found.");
-
-            return ResponseEntity.notFound().build();
-        }
+        TaskModel savedTask = taskRepository.save(taskModel);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedTask);
     }
 
     @GetMapping
     public ResponseEntity<List<TaskModel>> getAllTasks(){
         return ResponseEntity.status(HttpStatus.OK).body(taskRepository.findAll());
-    }
-
-    @GetMapping("{projectId}")
-    public ResponseEntity<List<TaskModel>> getTasksByProjectId(@PathVariable UUID projectId) {
-        List<TaskModel> tasks = taskRepository.findByProjectId(projectId);
-        if (tasks.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.ok(tasks);
-        }
     }
 
     @PutMapping("{id}")
